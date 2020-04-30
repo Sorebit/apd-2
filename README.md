@@ -1,4 +1,4 @@
-# apd-2
+# Audio analysis and processing - Project 2
 
 C# / [NAudio](https://github.com/naudio/NAudio) / WPF / [OxyPlot](https://github.com/oxyplot/oxyplot)
 
