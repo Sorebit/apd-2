@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,11 @@ namespace APDProjectTwo
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void OverlapSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Debug.Print(OverlapSlider.Value.ToString());
         }
     }
 }
