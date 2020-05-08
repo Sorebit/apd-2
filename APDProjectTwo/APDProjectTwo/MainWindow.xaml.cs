@@ -29,9 +29,11 @@ namespace APDProjectTwo
     public partial class MainWindow : Window
     {
         private WaveStream fileStream;
+        private AudioFileReader inputStream;
         private int sampleRate;
         private int channels;
         private MainViewModel viewModel = new MainViewModel();
+        private float[] samples;
 
         public MainWindow()
         {
@@ -53,12 +55,18 @@ namespace APDProjectTwo
         {
             try
             {
-                var inputStream = new AudioFileReader(fileName);
+                inputStream = new AudioFileReader(fileName);
                 fileStream = inputStream;
                 sampleRate = inputStream.WaveFormat.SampleRate;
                 channels = inputStream.WaveFormat.Channels;
                 viewModel.OpenFileName = fileName;
-                QueueFFT(inputStream);
+
+                samples = new float[inputStream.Length];
+                inputStream.Read(samples, 0, samples.Length);
+
+                AddWaveform();
+
+                QueueFFT();
             }
             catch (Exception e)
             {
@@ -72,53 +80,69 @@ namespace APDProjectTwo
             fileStream = null;
         }
 
-        private void QueueFFT(AudioFileReader inputStream)
+        private void QueueFFT()
         {
+            Debug.Print("queued");
+            // Default to single frame
             int fftLength = viewModel.SamplesPerFrame;
-            if (lengthBox.SelectedIndex == 1)
+            int offset = viewModel.SampleStart;
+            if (viewModel.SelectedLength == 1)
             {
                 // Whole signal (cut when too long)
-                int len = (int)inputStream.Length / sizeof(float) / channels;
+                offset = 0;
+                int len = samples.Length / channels;
                 int m = (int)Math.Log(len, 2.0);
-                Debug.Print("len " + len);
-                Debug.Print("pow " + m);
                 fftLength = (1 << m);
-                Debug.Print("fft " + fftLength);
             }
 
-            int ind = windowCombo.SelectedIndex;
-            var aggregator = new SampleAggregator(inputStream, fftLength, SampleAggregator.windowFunctions[ind]);
-            //aggregator.NotificationCount = sampleRate / 100;
-            aggregator.PerformFFT = true;
+            if (viewModel.SampleStart + fftLength * channels > samples.Length)
+            {
+                MessageBox.Show("Sample start too high", "Error");
+                return;
+            }
+
+            Func <int, int, double> winFun = SampleAggregator.windowFunctions[windowCombo.SelectedIndex];
+            var aggregator = new SampleAggregator(fftLength, winFun)
+            {
+                PerformFFT = true
+            };
             aggregator.FftCalculated += (s, a) => OnFftCalculated(a.Result);
-            aggregator.MaximumCalculated += (s, a) => OnMaxCalculated(a.MinSample, a.MaxSample);
 
-            float[] buffer = new float[fftLength * channels];
-            aggregator.Read(buffer, 0, fftLength * channels);
+            // Add samples from single channel to FFT aggregator
+            for (int n = offset; n < fftLength * channels + offset; n += channels)
+            {
+                aggregator.Add(samples[n]);
+            }
         }
 
-        public void OnMaxCalculated(float min, float max)
-        {
-            // nothing to do
-        }
+
 
         public void OnFftCalculated(Complex[] result)
         {
             Debug.Print("Calculated FFT");
-            List<DataPoint> itemsSource = new List<DataPoint>();
-            for(int i = 0; i <= result.Length / 2; i++)
+            List<DataPoint> points = new List<DataPoint>();
+            for(int i = 0; i < result.Length / 2; i++)
             {
                 double freq = i * sampleRate / result.Length;
-                itemsSource.Add(new DataPoint(freq, GetDb(result[i])));
+                points.Add(new DataPoint(freq, GetDb(result[i])));
             }
 
-            //spectrumAnalyser.Update(result);
-            viewModel.FftPoints = itemsSource;
+            viewModel.FftPoints = points;
         }
 
         private double GetDb(Complex c)
         {
-            return 20 * Math.Log10(Math.Sqrt(c.X * c.X + c.Y * c.Y));
+            return 10 * Math.Log10(Math.Sqrt(c.X * c.X + c.Y * c.Y));
+        }
+
+        public void AddWaveform()
+        {
+            List<DataPoint> points = new List<DataPoint>();
+            for (int n = 0; n < samples.Length; n += channels)
+            {
+                points.Add(new DataPoint(n / 2, samples[n]));
+            }
+            viewModel.WaveformPoints = points;
         }
     }
 }

@@ -31,7 +31,8 @@
                          HorizontalAlignment="Right" VerticalAlignment="Center" Width="96" Margin="0,0,8,0"/>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"  Margin="0,0,8,0"/>
                 <TextBlock Text="Window:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <ComboBox  x:Name="windowCombo" SelectedIndex="0" Width="96" Margin="0,0,8,0" VerticalAlignment="Center">
+                <ComboBox x:Name="windowCombo" SelectedIndex="0"
+                          Width="96" Margin="0,0,8,0" VerticalAlignment="Center">
                     <ComboBoxItem>Rectangular</ComboBoxItem>
                     <ComboBoxItem>Hamming</ComboBoxItem>
                     <ComboBoxItem>Van Hann</ComboBoxItem>
@@ -42,9 +43,10 @@
 
         <oxy:Plot Grid.Row="1">
             <oxy:Plot.Axes>
-                <oxy:LinearAxis Position="Bottom" Title="s"></oxy:LinearAxis>
+                <oxy:LinearAxis Position="Left" Minimum="-1.01" Maximum="1.01"></oxy:LinearAxis>
+                <oxy:LinearAxis Position="Bottom" Title="sample"></oxy:LinearAxis>
             </oxy:Plot.Axes>
-            <oxy:LineSeries ItemsSource="{Binding Points}"/>
+            <oxy:LineSeries ItemsSource="{Binding WaveformPoints}" StrokeThickness="1"/>
         </oxy:Plot>
 
         <TabControl Margin="0,0,0,0" Grid.Row="2" Height="Auto" Width="Auto">
@@ -62,15 +64,18 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Horizontal" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <ComboBox x:Name="lengthBox" SelectedIndex="0" Width="96" Margin="8,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <ComboBox SelectedIndex="{Binding Path=SelectedLength, Mode=TwoWay}"
+                                      Width="96" Margin="8,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                 <ComboBoxItem>Single frame</ComboBoxItem>
                                 <ComboBoxItem>Whole signal</ComboBoxItem>
                             </ComboBox>
                         </StackPanel>
 
                         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Grid.Column="1">
-                            <TextBlock Text="Start time:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBox HorizontalAlignment="Right" VerticalAlignment="Center" Width="128" Margin="0,0,8,0">0:00</TextBox>
+                            <TextBlock Text="Sample start:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox Text="{Binding Path=SampleStart, Mode=TwoWay}"
+                                     HorizontalAlignment="Right" VerticalAlignment="Center"
+                                     Width="128" Margin="0,0,8,0"/>
                         </StackPanel>
                     </Grid>
 

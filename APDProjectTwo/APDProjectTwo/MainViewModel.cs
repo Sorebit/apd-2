@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using OxyPlot;
 using OxyPlot.Axes;
@@ -20,6 +21,12 @@ namespace APDProjectTwo
             get => _samplesPerFrame;
             set => SetProperty(ref _samplesPerFrame, value);
         }
+        private int _sampleStart;
+        public int SampleStart
+        {
+            get => _sampleStart;
+            set => SetProperty(ref _sampleStart, value);
+        }
 
         private float _overlap;
         public float Overlap
@@ -34,10 +41,25 @@ namespace APDProjectTwo
             get => _fftPoints;
             set => SetProperty(ref _fftPoints, value);
         }
+        private IList<DataPoint> _waveformPoints;
+        public IList<DataPoint> WaveformPoints
+        {
+            get => _waveformPoints;
+            set => SetProperty(ref _waveformPoints, value);
+        }
+
+        private int _selectedLength;
+        public int SelectedLength
+        {
+            get => _selectedLength;
+            set => SetProperty(ref _selectedLength, value);
+        }
 
         public MainViewModel()
         {
             SamplesPerFrame = 1024;
+            SampleStart = 0;
+            SelectedLength = 0;
         }
     }
 }
