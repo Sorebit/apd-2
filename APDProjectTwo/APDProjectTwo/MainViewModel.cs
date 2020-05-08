@@ -1,35 +1,44 @@
-﻿namespace APDProjectTwo
+﻿using System.Collections.Generic;
+using System.ComponentModel;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+
+namespace APDProjectTwo
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using OxyPlot;
-    using OxyPlot.Series;
-
-    public class MainViewModel
+    public class MainViewModel : ViewModelBase
     {
-        public MainViewModel()
-        {
-            MyModel = new PlotModel();
-            MyModel.Series.Add(new FunctionSeries(Math.Cos, 0, 10, 0.1, "cos(x)"));
-
-            Title = "Example 2";
-            Points = new List<DataPoint>
-            {
-                new DataPoint(0, 4),
-                new DataPoint(10, 13),
-                new DataPoint(20, 15),
-                new DataPoint(30, 16),
-                new DataPoint(40, 12),
-                new DataPoint(50, 12)
-            };
-
+        private string _openFileName;
+        public string OpenFileName {
+            get => _openFileName;
+            set => SetProperty(ref _openFileName, value);
         }
 
-        public float Overlap;
-        public PlotModel MyModel { get; private set; }
-        public string Title { get; private set; }
-        public IList<DataPoint> Points { get; private set; }
+        private int _samplesPerFrame;
+        public int SamplesPerFrame
+        {
+            get => _samplesPerFrame;
+            set => SetProperty(ref _samplesPerFrame, value);
+        }
+
+        private float _overlap;
+        public float Overlap
+        {
+            get => _overlap;
+            set => SetProperty(ref _overlap, value);
+        }
+
+        private IList<DataPoint> _fftPoints;
+        public IList<DataPoint> FftPoints
+        {
+            get => _fftPoints;
+            set => SetProperty(ref _fftPoints, value);
+        }
+
+        public MainViewModel()
+        {
+            SamplesPerFrame = 1024;
+        }
     }
 }
 

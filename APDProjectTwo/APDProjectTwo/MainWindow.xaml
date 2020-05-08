@@ -4,9 +4,7 @@
         xmlns:oxy="http://oxyplot.org/wpf"
         xmlns:local="clr-namespace:APDProjectTwo"
         Title="APDProjectTwo" Height="600" Width="1000" MinHeight="600" MinWidth="1000">
-    <Window.DataContext>
-        <local:MainViewModel/>
-    </Window.DataContext>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -22,16 +20,18 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Column="0" HorizontalAlignment="Left">
-                <Button HorizontalAlignment="Left" VerticalAlignment="Center" Width="64" Margin="8,0,0,0">Open file</Button>
+                <Button HorizontalAlignment="Left" VerticalAlignment="Center" Width="64" Margin="8,0,0,0" Click="Button_Click">Open file</Button>
                 <TextBlock Text="File:" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                <TextBlock Text="{Binding Path=OpenFileName}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"/>
             </StackPanel>
 
             <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Grid.Column="1">
                 <TextBlock Text="Samples / frame:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBox HorizontalAlignment="Right" VerticalAlignment="Center" Width="96" Margin="0,0,8,0">512</TextBox>
+                <TextBox Text="{Binding Path=SamplesPerFrame, Mode=TwoWay}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center" Width="96" Margin="0,0,8,0"/>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"  Margin="0,0,8,0"/>
                 <TextBlock Text="Window:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <ComboBox SelectedIndex="0" Width="96" Margin="0,0,8,0" VerticalAlignment="Center">
+                <ComboBox  x:Name="windowCombo" SelectedIndex="0" Width="96" Margin="0,0,8,0" VerticalAlignment="Center">
                     <ComboBoxItem>Rectangular</ComboBoxItem>
                     <ComboBoxItem>Hamming</ComboBoxItem>
                     <ComboBoxItem>Van Hann</ComboBoxItem>
@@ -40,8 +40,13 @@
         </Grid>
         <!-- Top menu -->
 
-        <oxy:PlotView Model="{Binding MyModel}" Grid.Row="1"/>
-        
+        <oxy:Plot Grid.Row="1">
+            <oxy:Plot.Axes>
+                <oxy:LinearAxis Position="Bottom" Title="s"></oxy:LinearAxis>
+            </oxy:Plot.Axes>
+            <oxy:LineSeries ItemsSource="{Binding Points}"/>
+        </oxy:Plot>
+
         <TabControl Margin="0,0,0,0" Grid.Row="2" Height="Auto" Width="Auto">
             <TabItem Header="Fourier transform">
                 <Grid>
@@ -57,7 +62,7 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Horizontal" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <ComboBox SelectedIndex="0" Width="96" Margin="8,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <ComboBox x:Name="lengthBox" SelectedIndex="0" Width="96" Margin="8,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                 <ComboBoxItem>Single frame</ComboBoxItem>
                                 <ComboBoxItem>Whole signal</ComboBoxItem>
                             </ComboBox>
@@ -70,8 +75,12 @@
                     </Grid>
 
                     <oxy:Plot Title="Fourier transform" Grid.Row="1">
+                        <oxy:Plot.Axes>
+                            <oxy:LinearAxis Position="Left" Title="dB" ></oxy:LinearAxis>
+                            <oxy:LinearAxis Position="Bottom" Title="Hz"></oxy:LinearAxis>
+                        </oxy:Plot.Axes>
                         <oxy:Plot.Series>
-                            <oxy:LineSeries ItemsSource="{Binding Points}"/>
+                            <oxy:LineSeries ItemsSource="{Binding FftPoints}"/>
                         </oxy:Plot.Series>
                     </oxy:Plot>
                 </Grid>
@@ -87,8 +96,13 @@
 
                     <DockPanel Grid.Row="0" LastChildFill="True" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                         <TextBlock Text="Frame overlapping:" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                        <TextBlock Text="{Binding ElementName=OverlapSlider,Path=Value,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" Width="24"/>
-                        <Slider x:Name="OverlapSlider" ValueChanged="OverlapSlider_ValueChanged" Margin="8,0,8,0" VerticalAlignment="Center" HorizontalContentAlignment="Stretch" Maximum="1" Value="0" TickPlacement="Both" IsSnapToTickEnabled="True" TickFrequency="0.01" SmallChange="0.01"/>
+                        <TextBlock Text="{Binding Path=Overlap}"
+                                   DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   Margin="8,0,0,0" Width="24"/>
+                        <Slider Value="{Binding Path=Overlap, Mode=TwoWay}"
+                                Margin="8,0,8,0" VerticalAlignment="Center" HorizontalContentAlignment="Stretch"
+                                Minimum="0" Maximum="1" SmallChange="0.01"
+                                TickPlacement="Both" IsSnapToTickEnabled="True" TickFrequency="0.01"/>
                     </DockPanel>
                     
                     <oxy:Plot Title="Spectrogram" Grid.Row="1">
@@ -99,7 +113,7 @@
                 </Grid>
             </TabItem>
             <!-- Spectrum -->
-            
+
             <TabItem Header="Fundamental frequency">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -109,18 +123,26 @@
 
                     <DockPanel Grid.Row="0" LastChildFill="True" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                         <TextBlock Text="Frame overlapping:" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                        <TextBlock Text="{Binding ElementName=OverlapSlider,Path=Value,UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" Width="24"/>
-                        <Slider Value="{Binding ElementName=OverlapSlider,Path=Value,UpdateSourceTrigger=PropertyChanged}" ValueChanged="OverlapSlider_ValueChanged" Margin="8,0,8,0" VerticalAlignment="Center" HorizontalContentAlignment="Stretch" Maximum="1" TickPlacement="Both" IsSnapToTickEnabled="True" TickFrequency="0.01" SmallChange="0.01"/>
+                        <TextBlock Text="{Binding Path=Overlap}"
+                                   DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   Margin="8,0,0,0" Width="24"/>
+                        <Slider Value="{Binding Path=Overlap, Mode=TwoWay}"
+                                Margin="8,0,8,0" VerticalAlignment="Center" HorizontalContentAlignment="Stretch"
+                                Minimum="0" Maximum="1" SmallChange="0.01"
+                                TickPlacement="Both" IsSnapToTickEnabled="True" TickFrequency="0.01"/>
                     </DockPanel>
 
                     <oxy:Plot Title="Fundamental frequency" Grid.Row="1">
+                        <oxy:Plot.Axes>
+                            <oxy:LinearAxis Position="Left" Title="Hz" ></oxy:LinearAxis>
+                            <oxy:LinearAxis Position="Bottom" Title="s"></oxy:LinearAxis>
+                        </oxy:Plot.Axes>
                         <oxy:Plot.Series>
                             <oxy:LineSeries ItemsSource="{Binding Points}"/>
                         </oxy:Plot.Series>
                     </oxy:Plot>
                 </Grid>
             </TabItem>
-            
             <!-- Fundamental frequency -->
         </TabControl>
 
