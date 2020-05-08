@@ -20,7 +20,7 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Column="0" HorizontalAlignment="Left">
-                <Button HorizontalAlignment="Left" VerticalAlignment="Center" Width="64" Margin="8,0,0,0" Click="Button_Click">Open file</Button>
+                <Button HorizontalAlignment="Left" VerticalAlignment="Center" Width="64" Margin="8,0,0,0" Click="Open_Click">Open file</Button>
                 <TextBlock Text="File:" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"/>
                 <TextBlock Text="{Binding Path=OpenFileName}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"/>
             </StackPanel>
@@ -37,6 +37,9 @@
                     <ComboBoxItem>Hamming</ComboBoxItem>
                     <ComboBoxItem>Van Hann</ComboBoxItem>
                 </ComboBox>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"  Margin="0,0,8,0"/>
+                <Button HorizontalAlignment="Right" VerticalAlignment="Center" Width="64" Margin="0,0,8,0" Click="Redraw_Click" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" BorderBrush="{DynamicResource {x:Static SystemColors.MenuHighlightBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">Redraw
+                </Button>
             </StackPanel>
         </Grid>
         <!-- Top menu -->
@@ -91,7 +94,7 @@
                 </Grid>
             </TabItem>
             <!-- Fourier transform -->
-            
+
             <TabItem Header="Spectrum">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -109,7 +112,7 @@
                                 Minimum="0" Maximum="1" SmallChange="0.01"
                                 TickPlacement="Both" IsSnapToTickEnabled="True" TickFrequency="0.01"/>
                     </DockPanel>
-                    
+
                     <oxy:Plot Title="Spectrogram" Grid.Row="1">
                         <oxy:Plot.Series>
                             <oxy:LineSeries ItemsSource="{Binding Points}"/>

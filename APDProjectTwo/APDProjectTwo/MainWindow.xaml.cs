@@ -41,7 +41,7 @@ namespace APDProjectTwo
             DataContext = viewModel;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Open_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Wav files (*.wav)|*.wav";
@@ -61,7 +61,7 @@ namespace APDProjectTwo
                 channels = inputStream.WaveFormat.Channels;
                 viewModel.OpenFileName = fileName;
 
-                samples = new float[inputStream.Length];
+                samples = new float[inputStream.Length / sizeof(float)];
                 inputStream.Read(samples, 0, samples.Length);
 
                 AddWaveform();
@@ -82,6 +82,11 @@ namespace APDProjectTwo
 
         private void QueueFFT()
         {
+            if (samples == null)
+            {
+                return;
+            }
+
             Debug.Print("queued");
             // Default to single frame
             int fftLength = viewModel.SamplesPerFrame;
@@ -140,9 +145,14 @@ namespace APDProjectTwo
             List<DataPoint> points = new List<DataPoint>();
             for (int n = 0; n < samples.Length; n += channels)
             {
-                points.Add(new DataPoint(n / 2, samples[n]));
+                points.Add(new DataPoint(n, samples[n]));
             }
             viewModel.WaveformPoints = points;
+        }
+
+        private void Redraw_Click(object sender, RoutedEventArgs e)
+        {
+            QueueFFT();
         }
     }
 }
