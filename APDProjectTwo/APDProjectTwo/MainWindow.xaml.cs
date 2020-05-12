@@ -20,6 +20,7 @@ using NAudio.Wave;
 using NAudio.Dsp;
 using OxyPlot;
 using OxyPlot.Series;
+using OxyPlot.Axes;
 
 namespace APDProjectTwo
 {
@@ -34,6 +35,8 @@ namespace APDProjectTwo
         private int channels;
         private MainViewModel viewModel = new MainViewModel();
         private float[] samples;
+        private int spectroInd;
+        private double[,] spectrogramPoints;
 
         public MainWindow()
         {
@@ -118,11 +121,26 @@ namespace APDProjectTwo
             {
                 aggregator.Add(samples[n]);
             }
+
+            // Add samples for spectrogram
+            var spectrogramAggregator = new SampleAggregator(fftLength, winFun)
+            {
+                PerformFFT = true
+            };
+            spectrogramAggregator.FftCalculated += (s, a) => OnSpectroFftCalculated(a.Result);
+            spectroInd = 0;
+            int rows = samples.Length / channels / viewModel.SamplesPerFrame;
+            int cols = fftLength / 2;
+            Debug.Print("{0} x {1}", rows, cols);
+            spectrogramPoints = new double[rows, cols];
+
+            for (int n = 0; n < samples.Length; n += channels)
+            {
+                spectrogramAggregator.Add(samples[n]);
+            }
         }
 
-
-
-        public void OnFftCalculated(Complex[] result)
+        private void OnFftCalculated(Complex[] result)
         {
             Debug.Print("Calculated FFT");
             List<DataPoint> points = new List<DataPoint>();
@@ -133,6 +151,21 @@ namespace APDProjectTwo
             }
 
             viewModel.FftPoints = points;
+        }
+
+        private void OnSpectroFftCalculated(Complex[] result)
+        {
+            // Update spectrogram plot
+            Debug.Print("shiiet {0}", spectroInd);
+            for (int i = 0; i < result.Length / 2; i++)
+            {
+                spectrogramPoints[spectroInd, i] = GetDb(result[i]);
+            }
+            spectroInd++;
+            if(spectroInd == samples.Length / channels / viewModel.SamplesPerFrame)
+            {
+                viewModel.SpectrogramPoints = spectrogramPoints;
+            }
         }
 
         private double GetDb(Complex c)

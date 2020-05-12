@@ -35,17 +35,25 @@ namespace APDProjectTwo
             set => SetProperty(ref _overlap, value);
         }
 
+        private IList<DataPoint> _waveformPoints;
+        public IList<DataPoint> WaveformPoints
+        {
+            get => _waveformPoints;
+            set => SetProperty(ref _waveformPoints, value);
+        }
+
         private IList<DataPoint> _fftPoints;
         public IList<DataPoint> FftPoints
         {
             get => _fftPoints;
             set => SetProperty(ref _fftPoints, value);
         }
-        private IList<DataPoint> _waveformPoints;
-        public IList<DataPoint> WaveformPoints
+
+        private double[,] _spectrogramPoints;
+        public double[,] SpectrogramPoints
         {
-            get => _waveformPoints;
-            set => SetProperty(ref _waveformPoints, value);
+            get => _spectrogramPoints;
+            set => SetProperty(ref _spectrogramPoints, value);
         }
 
         private int _selectedLength;

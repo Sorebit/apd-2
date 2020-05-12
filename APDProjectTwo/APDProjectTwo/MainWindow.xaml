@@ -8,7 +8,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
-            <RowDefinition Height="100"/>
+            <RowDefinition Height="120"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
@@ -42,8 +42,9 @@
                 </Button>
             </StackPanel>
         </Grid>
-        <!-- Top menu -->
+        <!-- /Top menu -->
 
+        <!-- Waveform -->
         <oxy:Plot Grid.Row="1">
             <oxy:Plot.Axes>
                 <oxy:LinearAxis Position="Left" Minimum="-1.01" Maximum="1.01"></oxy:LinearAxis>
@@ -51,7 +52,9 @@
             </oxy:Plot.Axes>
             <oxy:LineSeries ItemsSource="{Binding WaveformPoints}" StrokeThickness="1"/>
         </oxy:Plot>
+        <!-- /Waveform -->
 
+        <!-- Fourier transform -->
         <TabControl Margin="0,0,0,0" Grid.Row="2" Height="Auto" Width="Auto">
             <TabItem Header="Fourier transform">
                 <Grid>
@@ -93,8 +96,9 @@
                     </oxy:Plot>
                 </Grid>
             </TabItem>
-            <!-- Fourier transform -->
+            <!-- /Fourier transform -->
 
+            <!-- Spectrum -->
             <TabItem Header="Spectrum">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -113,15 +117,27 @@
                                 TickPlacement="Both" IsSnapToTickEnabled="True" TickFrequency="0.01"/>
                     </DockPanel>
 
-                    <oxy:Plot Title="Spectrogram" Grid.Row="1">
+                    <oxy:Plot x:Name="SpectrogramPlot" Title="Spectrogram" Grid.Row="1">
+                        <oxy:Plot.Axes>
+                            <oxy:LinearAxis Key="x" Position="Bottom"/>
+                            <oxy:LinearAxis Key="y" Position="Left" />
+                            <oxy:LinearColorAxis Key="z" Position="Top" LowColor="DarkBlue" HighColor="DarkRed" PaletteSize="64" >
+                                <GradientStop Color="DarkBlue" Offset="0" />
+                                <GradientStop Color="Cyan" Offset="0.25" />
+                                <GradientStop Color="Yellow" Offset="0.5" />
+                                <GradientStop Color="Orange" Offset="0.75" />
+                                <GradientStop Color="DarkRed" Offset="1.0" />
+                            </oxy:LinearColorAxis>
+                        </oxy:Plot.Axes>
                         <oxy:Plot.Series>
-                            <oxy:LineSeries ItemsSource="{Binding Points}"/>
+                            <oxy:HeatMapSeries ColorAxisKey="Z" Data="{Binding SpectrogramPoints}" X0="0" X1="1" Y0="0" Y1="22050"/>
                         </oxy:Plot.Series>
                     </oxy:Plot>
                 </Grid>
             </TabItem>
-            <!-- Spectrum -->
+            <!-- /Spectrum -->
 
+            <!-- Fundamental frequency -->
             <TabItem Header="Fundamental frequency">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -151,7 +167,7 @@
                     </oxy:Plot>
                 </Grid>
             </TabItem>
-            <!-- Fundamental frequency -->
+            <!-- /Fundamental frequency -->
         </TabControl>
 
     </Grid>
