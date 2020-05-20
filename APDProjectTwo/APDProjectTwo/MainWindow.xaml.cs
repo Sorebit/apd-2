@@ -35,8 +35,8 @@ namespace APDProjectTwo
         private int channels;
         private MainViewModel viewModel = new MainViewModel();
         private float[] samples;
-        private int spectroInd;
-        private double[,] spectrogramPoints;
+        private List<double[]> spectrogramPoints;
+        private double[,] spectrogramPointsData;
 
         public MainWindow()
         {
@@ -128,16 +128,37 @@ namespace APDProjectTwo
                 PerformFFT = true
             };
             spectrogramAggregator.FftCalculated += (s, a) => OnSpectroFftCalculated(a.Result);
-            spectroInd = 0;
-            int rows = samples.Length / channels / viewModel.SamplesPerFrame;
-            int cols = fftLength / 2;
-            Debug.Print("{0} x {1}", rows, cols);
-            spectrogramPoints = new double[rows, cols];
 
-            for (int n = 0; n < samples.Length; n += channels)
+            int jumpBack = (int)((float)fftLength * viewModel.Overlap);
+            spectrogramPoints = new List<double[]>();
+
+            int sp = 0;
+            int currentN = 0;
+            // Iterate over samples, jumping back if overlap is required
+            while (sp < samples.Length)
             {
-                spectrogramAggregator.Add(samples[n]);
+                spectrogramAggregator.Add(samples[sp]);
+                sp += channels;
+                currentN++;
+                if(jumpBack > 0 && currentN == fftLength)
+                {
+                    currentN = 0;
+                    sp -= jumpBack * channels;
+                }
             }
+
+            int rows = spectrogramPoints[0].Length;
+
+            // Update plot
+            spectrogramPointsData = new double[spectrogramPoints.Count, rows];
+            for (int i = 0; i < spectrogramPoints.Count; i++)
+            {
+                for (int j = 0; j < rows; j++)
+                {
+                    spectrogramPointsData[i, j] = spectrogramPoints[i][j];
+                }
+            }
+            viewModel.SpectrogramPoints = spectrogramPointsData;
         }
 
         private void OnFftCalculated(Complex[] result)
@@ -155,17 +176,13 @@ namespace APDProjectTwo
 
         private void OnSpectroFftCalculated(Complex[] result)
         {
-            // Update spectrogram plot
-            Debug.Print("shiiet {0}", spectroInd);
+            // Update spectrogram data
+            double[] tmp = new double[result.Length / 2];
             for (int i = 0; i < result.Length / 2; i++)
             {
-                spectrogramPoints[spectroInd, i] = GetDb(result[i]);
+                tmp[i] = GetDb(result[i]);
             }
-            spectroInd++;
-            if(spectroInd == samples.Length / channels / viewModel.SamplesPerFrame)
-            {
-                viewModel.SpectrogramPoints = spectrogramPoints;
-            }
+            spectrogramPoints.Add(tmp);
         }
 
         private double GetDb(Complex c)
