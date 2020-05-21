@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
-using NAudio.Dsp;
-using NAudio.Wave;
-using System.Windows.Shapes;
+using System.Numerics;
+using MathNet.Numerics.IntegralTransforms;
 
 namespace APDProjectTwo
 {
@@ -19,14 +14,13 @@ namespace APDProjectTwo
         private readonly FftEventArgs fftArgs;
         private int fftPos;
         private readonly int fftLength;
-        private readonly int m;
 
         private readonly Func<int, int, double> windowFunction;
 
         public static Func<int, int, double>[] windowFunctions = {
             RectangularWindow,
-            FastFourierTransform.HammingWindow,
-            FastFourierTransform.HannWindow
+            NAudio.Dsp.FastFourierTransform.HammingWindow,
+            NAudio.Dsp.FastFourierTransform.HannWindow
         };
 
         private static double RectangularWindow(int n, int frameSize)
@@ -40,7 +34,6 @@ namespace APDProjectTwo
             {
                 throw new ArgumentException("FFT Length must be a power of two (" + fftLength + ")");
             }
-            m = (int)Math.Log(fftLength, 2.0);
             this.fftLength = fftLength;
             fftBuffer = new Complex[fftLength];
             fftArgs = new FftEventArgs(fftBuffer);
@@ -56,14 +49,20 @@ namespace APDProjectTwo
         {
             if (PerformFFT && FftCalculated != null)
             {
-                fftBuffer[fftPos].X = (float)(value * windowFunction(fftPos, fftLength));
-                fftBuffer[fftPos].Y = 0;
+                fftBuffer[fftPos] = new Complex((float)(value * windowFunction(fftPos, fftLength)), 0);
                 fftPos++;
                 if (fftPos >= fftBuffer.Length)
                 {
-                    Debug.Print("Calcing");
                     fftPos = 0;
-                    FastFourierTransform.FFT(true, m, fftBuffer);
+                   
+                    try
+                    {
+                        Fourier.Forward(fftBuffer, FourierOptions.Matlab);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Error: " + ex.Message);
+                    }
                     FftCalculated(this, fftArgs);
                 }
             }

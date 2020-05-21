@@ -49,11 +49,11 @@ namespace APDProjectTwo
             set => SetProperty(ref _fftPoints, value);
         }
 
-        private double[,] _spectrogramPoints;
-        public double[,] SpectrogramPoints
+        private double[,] _spectrogramData;
+        public double[,] SpectrogramData
         {
-            get => _spectrogramPoints;
-            set => SetProperty(ref _spectrogramPoints, value);
+            get => _spectrogramData;
+            set => SetProperty(ref _spectrogramData, value);
         }
 
         private int _selectedLength;

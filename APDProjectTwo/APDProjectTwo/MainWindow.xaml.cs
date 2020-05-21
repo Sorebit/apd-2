@@ -1,26 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.IO;
 using Microsoft.Win32;
-using NAudio;
 using NAudio.Wave;
 using NAudio.Dsp;
 using OxyPlot;
-using OxyPlot.Series;
-using OxyPlot.Axes;
 
 namespace APDProjectTwo
 {
@@ -35,8 +20,9 @@ namespace APDProjectTwo
         private int channels;
         private MainViewModel viewModel = new MainViewModel();
         private float[] samples;
-        private List<double[]> spectrogramPoints;
-        private double[,] spectrogramPointsData;
+        private List<double[]> _spectroPoints;
+        private double[,] spectroData;
+        private int fftLength;
 
         public MainWindow()
         {
@@ -46,8 +32,10 @@ namespace APDProjectTwo
 
         private void Open_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Wav files (*.wav)|*.wav";
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Wav files (*.wav)|*.wav"
+            };
             if (openFileDialog.ShowDialog() == true)
             {
                 OpenFile(openFileDialog.FileName);
@@ -69,7 +57,7 @@ namespace APDProjectTwo
 
                 AddWaveform();
 
-                QueueFFT();
+                Process();
             }
             catch (Exception e)
             {
@@ -77,22 +65,24 @@ namespace APDProjectTwo
                 CloseFile();
             }
         }
+
         private void CloseFile()
         {
             fileStream?.Dispose();
             fileStream = null;
         }
 
-        private void QueueFFT()
+        private void Process()
         {
             if (samples == null)
             {
                 return;
             }
 
-            Debug.Print("queued");
             // Default to single frame
-            int fftLength = viewModel.SamplesPerFrame;
+            // 0 - single frame
+            // 1 - whole signal
+            fftLength = viewModel.SamplesPerFrame;
             int offset = viewModel.SampleStart;
             if (viewModel.SelectedLength == 1)
             {
@@ -109,6 +99,7 @@ namespace APDProjectTwo
                 return;
             }
 
+            // FFT
             Func <int, int, double> winFun = SampleAggregator.windowFunctions[windowCombo.SelectedIndex];
             var aggregator = new SampleAggregator(fftLength, winFun)
             {
@@ -123,14 +114,14 @@ namespace APDProjectTwo
             }
 
             // Add samples for spectrogram
-            var spectrogramAggregator = new SampleAggregator(fftLength, winFun)
+            var spectrogramAggregator = new SampleAggregator(viewModel.SamplesPerFrame, winFun)
             {
                 PerformFFT = true
             };
             spectrogramAggregator.FftCalculated += (s, a) => OnSpectroFftCalculated(a.Result);
 
             int jumpBack = (int)((float)fftLength * viewModel.Overlap);
-            spectrogramPoints = new List<double[]>();
+            _spectroPoints = new List<double[]>();
 
             int sp = 0;
             int currentN = 0;
@@ -140,30 +131,28 @@ namespace APDProjectTwo
                 spectrogramAggregator.Add(samples[sp]);
                 sp += channels;
                 currentN++;
-                if(jumpBack > 0 && currentN == fftLength)
+                if(jumpBack > 0 && currentN == viewModel.SamplesPerFrame)
                 {
                     currentN = 0;
                     sp -= jumpBack * channels;
                 }
             }
 
-            int rows = spectrogramPoints[0].Length;
-
             // Update plot
-            spectrogramPointsData = new double[spectrogramPoints.Count, rows];
-            for (int i = 0; i < spectrogramPoints.Count; i++)
+            int snapshots = _spectroPoints[0].Length;
+            spectroData = new double[_spectroPoints.Count, snapshots];
+            for (int i = 0; i < _spectroPoints.Count; i++)
             {
-                for (int j = 0; j < rows; j++)
+                for (int j = 0; j < snapshots; j++)
                 {
-                    spectrogramPointsData[i, j] = spectrogramPoints[i][j];
+                    spectroData[i, j] = _spectroPoints[i][j];
                 }
             }
-            viewModel.SpectrogramPoints = spectrogramPointsData;
+            viewModel.SpectrogramData = spectroData;
         }
 
-        private void OnFftCalculated(Complex[] result)
+        private void OnFftCalculated(System.Numerics.Complex[] result)
         {
-            Debug.Print("Calculated FFT");
             List<DataPoint> points = new List<DataPoint>();
             for(int i = 0; i < result.Length / 2; i++)
             {
@@ -174,7 +163,7 @@ namespace APDProjectTwo
             viewModel.FftPoints = points;
         }
 
-        private void OnSpectroFftCalculated(Complex[] result)
+        private void OnSpectroFftCalculated(System.Numerics.Complex[] result)
         {
             // Update spectrogram data
             double[] tmp = new double[result.Length / 2];
@@ -182,14 +171,15 @@ namespace APDProjectTwo
             {
                 tmp[i] = GetDb(result[i]);
             }
-            spectrogramPoints.Add(tmp);
+            _spectroPoints.Add(tmp);
         }
 
-        private double GetDb(Complex c)
+        private double GetDb(System.Numerics.Complex c)
         {
-            return 10 * Math.Log10(Math.Sqrt(c.X * c.X + c.Y * c.Y));
+            return 10.0 * Math.Log10(Math.Sqrt(c.Real * c.Real + c.Imaginary * c.Imaginary));
         }
 
+        // Loads waveform into view
         public void AddWaveform()
         {
             List<DataPoint> points = new List<DataPoint>();
@@ -202,7 +192,7 @@ namespace APDProjectTwo
 
         private void Redraw_Click(object sender, RoutedEventArgs e)
         {
-            QueueFFT();
+            Process();
         }
     }
 }

@@ -130,7 +130,7 @@
                             </oxy:LinearColorAxis>
                         </oxy:Plot.Axes>
                         <oxy:Plot.Series>
-                            <oxy:HeatMapSeries ColorAxisKey="Z" Data="{Binding SpectrogramPoints}" X0="0" X1="1" Y0="0" Y1="22050"/>
+                            <oxy:HeatMapSeries ColorAxisKey="Z" Data="{Binding SpectrogramData}" X0="0" X1="1" Y0="0" Y1="22050"/>
                         </oxy:Plot.Series>
                     </oxy:Plot>
                 </Grid>
