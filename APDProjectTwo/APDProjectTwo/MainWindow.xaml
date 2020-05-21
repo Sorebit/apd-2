@@ -162,7 +162,7 @@
                             <oxy:LinearAxis Position="Bottom" Title="s"></oxy:LinearAxis>
                         </oxy:Plot.Axes>
                         <oxy:Plot.Series>
-                            <oxy:LineSeries ItemsSource="{Binding Points}"/>
+                            <oxy:LineSeries ItemsSource="{Binding CepstrumPoints}"/>
                         </oxy:Plot.Series>
                     </oxy:Plot>
                 </Grid>

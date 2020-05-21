@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using OxyPlot;
-using OxyPlot.Axes;
-using OxyPlot.Series;
 
 namespace APDProjectTwo
 {
@@ -54,6 +50,13 @@ namespace APDProjectTwo
         {
             get => _spectrogramData;
             set => SetProperty(ref _spectrogramData, value);
+        }
+
+        private IList<DataPoint> _cepstrumPoints;
+        public IList<DataPoint> CepstrumPoints
+        {
+            get => _cepstrumPoints;
+            set => SetProperty(ref _cepstrumPoints, value);
         }
 
         private int _selectedLength;

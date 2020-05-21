@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Windows;
 using Microsoft.Win32;
 using NAudio.Wave;
-using NAudio.Dsp;
 using OxyPlot;
+using System.Numerics;
+using MathNet.Numerics.IntegralTransforms;
 
 namespace APDProjectTwo
 {
@@ -23,6 +23,7 @@ namespace APDProjectTwo
         private List<double[]> _spectroPoints;
         private double[,] spectroData;
         private int fftLength;
+        private List<Complex[]> cepstrumData;
 
         public MainWindow()
         {
@@ -149,9 +150,41 @@ namespace APDProjectTwo
                 }
             }
             viewModel.SpectrogramData = spectroData;
+
+            // Cepstrum
+            cepstrumData = new List<Complex[]>();
+            List<DataPoint> cepstrumPoints = new List<DataPoint>();
+            for (int i = 0; i < _spectroPoints.Count; i++)
+            {
+
+                cepstrumData.Add(new Complex[_spectroPoints[i].Length]);
+                for (int j = 0; j < cepstrumData[i].Length; j++)
+                {
+                    // Convert back to non-db
+                    double re = Math.Pow(10, (_spectroPoints[i][j] / 10.0));
+                    cepstrumData[i][j] = new Complex(Math.Log(re), 0);
+                }
+                
+                try
+                {
+                    Fourier.Inverse(cepstrumData[i], FourierOptions.Matlab);
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show("Error: " + ex.Message);
+                }
+
+                double tMax = cepstrumData[i][50].Real;
+                for (int j = 50; j < cepstrumData[i].Length / 2; j++)
+                {
+                    tMax = Math.Max(tMax, cepstrumData[i][j].Real);
+                }
+                cepstrumPoints.Add(new DataPoint(i, 1 / tMax));
+            }
+            viewModel.CepstrumPoints = cepstrumPoints;
         }
 
-        private void OnFftCalculated(System.Numerics.Complex[] result)
+        private void OnFftCalculated(Complex[] result)
         {
             List<DataPoint> points = new List<DataPoint>();
             for(int i = 0; i < result.Length / 2; i++)
@@ -163,7 +196,7 @@ namespace APDProjectTwo
             viewModel.FftPoints = points;
         }
 
-        private void OnSpectroFftCalculated(System.Numerics.Complex[] result)
+        private void OnSpectroFftCalculated(Complex[] result)
         {
             // Update spectrogram data
             double[] tmp = new double[result.Length / 2];
@@ -174,7 +207,7 @@ namespace APDProjectTwo
             _spectroPoints.Add(tmp);
         }
 
-        private double GetDb(System.Numerics.Complex c)
+        private double GetDb(Complex c)
         {
             return 10.0 * Math.Log10(Math.Sqrt(c.Real * c.Real + c.Imaginary * c.Imaginary));
         }
