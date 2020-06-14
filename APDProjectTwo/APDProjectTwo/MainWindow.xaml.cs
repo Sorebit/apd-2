@@ -21,6 +21,7 @@ namespace APDProjectTwo
         private MainViewModel viewModel = new MainViewModel();
         private float[] samples;
         private List<double[]> _spectroPoints;
+        private List<double[]> _cepstrumPoints;
         private double[,] spectroData;
         private int fftLength;
         private List<Complex[]> cepstrumData;
@@ -123,6 +124,7 @@ namespace APDProjectTwo
 
             int jumpBack = (int)((float)fftLength * viewModel.Overlap);
             _spectroPoints = new List<double[]>();
+            _cepstrumPoints = new List<double[]>();
 
             int sp = 0;
             int currentN = 0;
@@ -154,15 +156,13 @@ namespace APDProjectTwo
             // Cepstrum
             cepstrumData = new List<Complex[]>();
             List<DataPoint> cepstrumPoints = new List<DataPoint>();
-            for (int i = 0; i < _spectroPoints.Count; i++)
+            for (int i = 0; i < _cepstrumPoints.Count; i++)
             {
 
-                cepstrumData.Add(new Complex[_spectroPoints[i].Length]);
+                cepstrumData.Add(new Complex[_cepstrumPoints[i].Length]);
                 for (int j = 0; j < cepstrumData[i].Length; j++)
                 {
-                    // Convert back to non-db
-                    double re = Math.Pow(10, (_spectroPoints[i][j] / 10.0));
-                    cepstrumData[i][j] = new Complex(Math.Log(re), 0);
+                    cepstrumData[i][j] = new Complex(_cepstrumPoints[i][j], 0);
                 }
                 
                 try
@@ -174,12 +174,22 @@ namespace APDProjectTwo
                     System.Windows.MessageBox.Show("Error: " + ex.Message);
                 }
 
-                double tMax = cepstrumData[i][50].Real;
-                for (int j = 50; j < cepstrumData[i].Length / 2; j++)
+                double? tMax = null;
+                double? cMax = null;
+                for (int j = 0; j < cepstrumData[i].Length; j++)
                 {
-                    tMax = Math.Max(tMax, cepstrumData[i][j].Real);
+                    double freq = (double)sampleRate / j;
+                    double c = cepstrumData[i][j].Magnitude;
+                    if (freq >= 50 && freq <= 400)
+                    {
+                        if (tMax == null || (cMax < c))
+                        {
+                            tMax = j;
+                            cMax = c;
+                        }
+                    }
                 }
-                cepstrumPoints.Add(new DataPoint(i, 1 / tMax));
+                cepstrumPoints.Add(new DataPoint(i, (double)sampleRate / tMax.Value));  // 1 / tau
             }
             viewModel.CepstrumPoints = cepstrumPoints;
         }
@@ -200,16 +210,22 @@ namespace APDProjectTwo
         {
             // Update spectrogram data
             double[] tmp = new double[result.Length / 2];
-            for (int i = 0; i < result.Length / 2; i++)
+            double[] ceptmp = new double[result.Length];
+            for (int i = 0; i < result.Length; i++)
             {
-                tmp[i] = GetDb(result[i]);
+                ceptmp[i] = Math.Log(result[i].Magnitude);
+                if (i < result.Length / 2)
+                {
+                    tmp[i] = GetDb(result[i]);
+                }
             }
             _spectroPoints.Add(tmp);
+            _cepstrumPoints.Add(ceptmp);
         }
 
         private double GetDb(Complex c)
         {
-            return 10.0 * Math.Log10(Math.Sqrt(c.Real * c.Real + c.Imaginary * c.Imaginary));
+            return 10.0 * Math.Log10(c.Magnitude);
         }
 
         // Loads waveform into view
