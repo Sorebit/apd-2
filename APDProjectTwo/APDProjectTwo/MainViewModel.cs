@@ -59,6 +59,27 @@ namespace APDProjectTwo
             set => SetProperty(ref _cepstrumPoints, value);
         }
 
+        private IList<DataPoint> _singleCepstrumPoints;
+        public IList<DataPoint> SingleCepstrumPoints
+        {
+            get => _singleCepstrumPoints;
+            set => SetProperty(ref _singleCepstrumPoints, value);
+        }
+
+        private int _cepstrumFrameNumber;
+        public int CepstrumFrameNumber
+        {
+            get => _cepstrumFrameNumber;
+            set => SetProperty(ref _cepstrumFrameNumber, value);
+        }
+
+        private int _cepstrumMaxFrameNumber;
+        public int CepstrumMaxFrameNumber
+        {
+            get => _cepstrumMaxFrameNumber;
+            set => SetProperty(ref _cepstrumMaxFrameNumber, value);
+        }
+
         private int _selectedLength;
         public int SelectedLength
         {

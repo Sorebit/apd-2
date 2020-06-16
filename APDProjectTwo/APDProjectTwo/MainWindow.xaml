@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:oxy="http://oxyplot.org/wpf"
         xmlns:local="clr-namespace:APDProjectTwo"
-        Title="APDProjectTwo" Height="600" Width="1000" MinHeight="600" MinWidth="1000">
+        Title="APDProjectTwo" Height="800" Width="1000" MinHeight="600" MinWidth="1000">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -38,7 +38,12 @@
                     <ComboBoxItem>Van Hann</ComboBoxItem>
                 </ComboBox>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"  Margin="0,0,8,0"/>
-                <Button HorizontalAlignment="Right" VerticalAlignment="Center" Width="64" Margin="0,0,8,0" Click="Redraw_Click" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" BorderBrush="{DynamicResource {x:Static SystemColors.MenuHighlightBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">Redraw
+                <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Width="64" Margin="0,0,8,0" Click="Redraw_Click"
+                        Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                        BorderBrush="{DynamicResource {x:Static SystemColors.MenuHighlightBrushKey}}"
+                        Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">
+                    Redraw
                 </Button>
             </StackPanel>
         </Grid>
@@ -120,8 +125,8 @@
                     <oxy:Plot x:Name="SpectrogramPlot" Title="Spectrogram" Grid.Row="1">
                         <oxy:Plot.Axes>
                             <oxy:LinearAxis Key="x" Position="Bottom"/>
-                            <oxy:LinearAxis Key="y" Position="Left" />
-                            <oxy:LinearColorAxis Key="z" Position="Top" LowColor="DarkBlue" HighColor="DarkRed" PaletteSize="64" >
+                            <oxy:LinearAxis Key="y" Title="Hz" Position="Left" />
+                            <oxy:LinearColorAxis Key="z" Title="dB" Position="Top" LowColor="DarkBlue" HighColor="DarkRed" PaletteSize="64" >
                                 <GradientStop Color="DarkBlue" Offset="0" />
                                 <GradientStop Color="Cyan" Offset="0.25" />
                                 <GradientStop Color="Yellow" Offset="0.5" />
@@ -168,6 +173,42 @@
                 </Grid>
             </TabItem>
             <!-- /Fundamental frequency -->
+
+            <!-- Cepstrum -->
+            <TabItem Header="Cepstrum">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" LastChildFill="True" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <Button Click="RedrawCepstrum_Click" DockPanel.Dock="Left" Width="64"
+                                HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0">
+                            Redraw
+                        </Button>
+                        <TextBlock Text="Frame number:" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <TextBlock Text="{Binding Path=CepstrumFrameNumber}"
+                                       DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" Width="24"/>
+                        <Slider Value="{Binding Path=CepstrumFrameNumber, Mode=TwoWay}"
+                                    Margin="8,0,8,0" VerticalAlignment="Center" HorizontalContentAlignment="Stretch"
+                                    Minimum="0" Maximum="{Binding Path=CepstrumMaxFrameNumber}" SmallChange="1"
+                                    TickPlacement="Both" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                    </DockPanel>
+
+                    <oxy:Plot Title="Cepstrum" Grid.Row="1">
+                        <oxy:Plot.Axes>
+                            <oxy:LinearAxis Position="Left" Title="Magnitude" ></oxy:LinearAxis>
+                            <oxy:LinearAxis Position="Bottom" Title="Hz"></oxy:LinearAxis>
+                        </oxy:Plot.Axes>
+                        <oxy:Plot.Series>
+                            <oxy:LineSeries ItemsSource="{Binding SingleCepstrumPoints}"/>
+                        </oxy:Plot.Series>
+                    </oxy:Plot>
+                </Grid>
+            </TabItem>
+            <!-- /Cepstrum-->
         </TabControl>
 
     </Grid>

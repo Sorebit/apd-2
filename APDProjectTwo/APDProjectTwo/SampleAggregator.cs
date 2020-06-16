@@ -9,7 +9,6 @@ namespace APDProjectTwo
     {
         // FFT
         public event EventHandler<FftEventArgs> FftCalculated;
-        public bool PerformFFT { get; set; }
         private readonly Complex[] fftBuffer;
         private readonly FftEventArgs fftArgs;
         private int fftPos;
@@ -47,7 +46,7 @@ namespace APDProjectTwo
 
         public void Add(float value)
         {
-            if (PerformFFT && FftCalculated != null)
+            if (FftCalculated != null)
             {
                 fftBuffer[fftPos] = new Complex((float)(value * windowFunction(fftPos, fftLength)), 0);
                 fftPos++;
@@ -57,7 +56,7 @@ namespace APDProjectTwo
                    
                     try
                     {
-                        Fourier.Forward(fftBuffer, FourierOptions.Matlab);
+                        Fourier.Forward(fftBuffer, FourierOptions.NoScaling);
                     }
                     catch (Exception ex)
                     {

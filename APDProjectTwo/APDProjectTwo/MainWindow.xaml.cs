@@ -103,10 +103,7 @@ namespace APDProjectTwo
 
             // FFT
             Func <int, int, double> winFun = SampleAggregator.windowFunctions[windowCombo.SelectedIndex];
-            var aggregator = new SampleAggregator(fftLength, winFun)
-            {
-                PerformFFT = true
-            };
+            var aggregator = new SampleAggregator(fftLength, winFun);
             aggregator.FftCalculated += (s, a) => OnFftCalculated(a.Result);
 
             // Add samples from single channel to FFT aggregator
@@ -116,10 +113,7 @@ namespace APDProjectTwo
             }
 
             // Add samples for spectrogram
-            var spectrogramAggregator = new SampleAggregator(viewModel.SamplesPerFrame, winFun)
-            {
-                PerformFFT = true
-            };
+            var spectrogramAggregator = new SampleAggregator(viewModel.SamplesPerFrame, winFun);
             spectrogramAggregator.FftCalculated += (s, a) => OnSpectroFftCalculated(a.Result);
 
             int jumpBack = (int)((float)fftLength * viewModel.Overlap);
@@ -156,6 +150,11 @@ namespace APDProjectTwo
             // Cepstrum
             cepstrumData = new List<Complex[]>();
             List<DataPoint> cepstrumPoints = new List<DataPoint>();
+
+            // Set bounds for cepstrum frame select slider
+            viewModel.CepstrumMaxFrameNumber = _cepstrumPoints.Count - 1;
+            viewModel.CepstrumFrameNumber = 0;
+
             for (int i = 0; i < _cepstrumPoints.Count; i++)
             {
 
@@ -167,7 +166,7 @@ namespace APDProjectTwo
                 
                 try
                 {
-                    Fourier.Inverse(cepstrumData[i], FourierOptions.Matlab);
+                    Fourier.Inverse(cepstrumData[i], FourierOptions.NoScaling);
                 }
                 catch (Exception ex)
                 {
@@ -176,22 +175,45 @@ namespace APDProjectTwo
 
                 double? tMax = null;
                 double? cMax = null;
-                for (int j = 0; j < cepstrumData[i].Length; j++)
+                for (int j = cepstrumData[i].Length - 1; j >= 0; j--)
                 {
-                    double freq = (double)sampleRate / j;
+                    double freq = (double)sampleRate / (double)j;
                     double c = cepstrumData[i][j].Magnitude;
                     if (freq >= 50 && freq <= 400)
                     {
-                        if (tMax == null || (cMax < c))
+                        if (tMax == null || (cMax <= c))
                         {
                             tMax = j;
                             cMax = c;
                         }
                     }
                 }
-                cepstrumPoints.Add(new DataPoint(i, (double)sampleRate / tMax.Value));  // 1 / tau
+                cepstrumPoints.Add(new DataPoint(i * fftLength * channels, (double)sampleRate / tMax.Value));  // 1 / tau
             }
             viewModel.CepstrumPoints = cepstrumPoints;
+
+            DrawSingleCepstrum();
+        }
+
+        private void DrawSingleCepstrum()
+        {
+            // Draw cepstrum for a single selected frame
+            List<DataPoint> singleCepstrumPoints = new List<DataPoint>();
+            Complex[] huh = cepstrumData[viewModel.CepstrumFrameNumber];
+            for (int j = 0; j < cepstrumData[viewModel.CepstrumFrameNumber].Length; j++)
+            {
+                double val = cepstrumData[viewModel.CepstrumFrameNumber][j].Magnitude;
+                double freq = (double)sampleRate / (double)j;
+                if (freq >= 50 && freq <= 400)
+                {
+                    if (double.IsInfinity(val))
+                    {
+                        val = double.MaxValue;
+                    }
+                    singleCepstrumPoints.Add(new DataPoint(freq, val));
+                }
+            }
+            viewModel.SingleCepstrumPoints = singleCepstrumPoints;
         }
 
         private void OnFftCalculated(Complex[] result)
@@ -213,7 +235,8 @@ namespace APDProjectTwo
             double[] ceptmp = new double[result.Length];
             for (int i = 0; i < result.Length; i++)
             {
-                ceptmp[i] = Math.Log(result[i].Magnitude);
+                // log|fft(s)\
+                ceptmp[i] = result[i].Magnitude != 0 ? Math.Log(result[i].Magnitude) : double.MinValue; // Fix -inf for 0
                 if (i < result.Length / 2)
                 {
                     tmp[i] = GetDb(result[i]);
@@ -242,6 +265,11 @@ namespace APDProjectTwo
         private void Redraw_Click(object sender, RoutedEventArgs e)
         {
             Process();
+        }
+
+        private void RedrawCepstrum_Click(object sender, RoutedEventArgs e)
+        {
+            DrawSingleCepstrum();
         }
     }
 }
