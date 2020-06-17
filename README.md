@@ -1,7 +1,5 @@
 # Audio analysis and processing - Project 2
 
-C# / [NAudio](https://github.com/naudio/NAudio) / WPF / [OxyPlot](https://github.com/oxyplot/oxyplot)
-
 ## Features
 
 -
@@ -9,6 +7,12 @@ C# / [NAudio](https://github.com/naudio/NAudio) / WPF / [OxyPlot](https://github
 ### Planned features
 
 -
+
+## Dependencies
+ - [NAudio](https://github.com/naudio/NAudio)
+ - [Math.NET Numerics](https://numerics.mathdotnet.com/)
+ - WPF
+ - [OxyPlot](https://github.com/oxyplot/oxyplot)
 
 ## Links
 
