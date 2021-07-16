@@ -2,11 +2,13 @@
 
 ## Features
 
--
+- Frequency analysis with Fourier Transform
+  - Hamming, Han and rectangle window functions
+  - Spectrogram
+- Calculating fundamental frequency using cepstrum
+- [Analysis](./docs/sprawozdanie.pdf) of various voice samples (unfortunately only in polish)
 
-### Planned features
-
--
+![skijapapa](./docs/figures/skijapapa_201_analiza.png)
 
 ## Dependencies
  - [NAudio](https://github.com/naudio/NAudio)
